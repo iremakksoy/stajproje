@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stajproje-app
+  labels:
+    app: stajproje-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stajproje-app
+  template:
+    metadata:
+      labels:
+        app: stajproje-app
+    spec:
+      containers:
+      - name: stajproje-app
+        image: stajproje:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres-service:5432/postgres"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "postgres"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "irem123"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stajproje-service
+spec:
+  selector:
+    app: stajproje-app
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
