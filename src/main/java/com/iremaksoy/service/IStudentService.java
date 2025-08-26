@@ -9,6 +9,7 @@ import com.iremaksoy.entities.student;
 public interface IStudentService {
 	public student saveStudent(StudentDto studentDTO);
 	public List<StudentDto> getAllStudents();
+	public Optional<StudentDto> updateStudent(Integer id, StudentDto studentDTO);
 	
 	// Delete metodları
 	public boolean deleteStudentById(Integer id);

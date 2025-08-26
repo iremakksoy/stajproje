@@ -12,6 +12,17 @@ public class StudentMapper {
         student.setEmail(studentDTO.getEmail());
         return student;
     }
-	
+
+    public static StudentDto toDto(student student) {
+        if (student == null) {
+            return null;
+        }
+        return new StudentDto(
+            student.getFirstname(),
+            student.getLastname(),
+            student.getEmail(),
+            student.getVersion()
+        );
+    }
 
 }

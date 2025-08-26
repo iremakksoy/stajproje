@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.OptimisticLockingFailureException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -90,5 +91,16 @@ public class StudentControllerImpl implements IStudentController {
     public ResponseEntity<StudentDto> getStudentByUsername(@PathVariable String username) {
         Optional<StudentDto> student = studentService.getStudentByUsername(username);
         return student.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update student with optimistic locking", description = "Supply current version; 409 on conflict")
+    public ResponseEntity<?> updateStudent(@PathVariable Integer id, @RequestBody StudentDto studentDTO) {
+        try {
+            Optional<StudentDto> updated = studentService.updateStudent(id, studentDTO);
+            return updated.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        } catch (OptimisticLockingFailureException e) {
+            return ResponseEntity.status(409).body("Optimistic lock conflict: " + e.getMessage());
+        }
     }
 }

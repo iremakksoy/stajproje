@@ -11,6 +11,7 @@ import com.iremaksoy.service.IStudentService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 @Service
 public class StudentServiceImpl implements IStudentService {
@@ -26,9 +27,8 @@ public class StudentServiceImpl implements IStudentService {
     @Override
     public List<StudentDto> getAllStudents() {
         List<student> students = studentRepository.findAll();
-        
         return students.stream()
-                .map(student -> new StudentDto(student.getFirstname(), student.getLastname(), student.getEmail()))
+                .map(StudentMapper::toDto)
                 .collect(Collectors.toList());
     }
     
@@ -69,12 +69,30 @@ public class StudentServiceImpl implements IStudentService {
     @Override
     public Optional<StudentDto> getStudentById(Integer id) {
         Optional<student> studentOpt = studentRepository.findById(id);
-        return studentOpt.map(student -> new StudentDto(student.getFirstname(), student.getLastname(), student.getEmail()));
+        return studentOpt.map(StudentMapper::toDto);
     }
     
     @Override
     public Optional<StudentDto> getStudentByUsername(String username) {
         Optional<student> studentOpt = studentRepository.findByUsername(username);
-        return studentOpt.map(student -> new StudentDto(student.getFirstname(), student.getLastname(), student.getEmail()));
+        return studentOpt.map(StudentMapper::toDto);
+    }
+
+    @Override
+    public Optional<StudentDto> updateStudent(Integer id, StudentDto studentDTO) {
+        Optional<student> existingOpt = studentRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        student existing = existingOpt.get();
+        // client-stale check
+        if (studentDTO.getVersion() == null || !studentDTO.getVersion().equals(existing.getVersion())) {
+            throw new OptimisticLockingFailureException("Version conflict for student id=" + id);
+        }
+        existing.setFirstname(studentDTO.getFirstname());
+        existing.setLastname(studentDTO.getLastname());
+        existing.setEmail(studentDTO.getEmail());
+        student saved = studentRepository.save(existing);
+        return Optional.ofNullable(StudentMapper.toDto(saved));
     }
 }

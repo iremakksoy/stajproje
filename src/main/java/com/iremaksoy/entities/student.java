@@ -23,6 +23,10 @@ public class student implements UserDetails {
 	@Column(name="id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
+
+	@Version
+	@Column(name="version")
+	private Long version;
 	
 	@Column(name="first_name", nullable = false)
 	private String firstname;
